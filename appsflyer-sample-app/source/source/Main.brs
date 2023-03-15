@@ -4,6 +4,9 @@ Function Main(args as Dynamic) as Void
 End Function
 
 sub showAppsflyerChannelSGScreen(args as Dynamic)
+    ' temp delete registry
+    ' deleteReg("AppsFlyerRegistry.roku.dev")
+
     screen = CreateObject("roSGScreen")
     m.port = CreateObject("roMessagePort")
     screen.setMessagePort(m.port)    
@@ -32,3 +35,34 @@ sub showAppsflyerChannelSGScreen(args as Dynamic)
         end if
     end while
 end sub
+
+
+Function deleteReg(keySection as String) as Void
+    print "Starting Delete Registry"
+    Registry = CreateObject("roRegistry")
+    i = 0
+    
+    if keySection <> "" then
+            RegistrySection = CreateObject("roRegistrySection", keySection)
+            for each key in RegistrySection.GetKeyList()
+                i = i+1
+                print "Deleting " keySection + ":" key
+                RegistrySection.Delete(key)
+            end for 
+            RegistrySection.flush()
+    else
+    
+        for each section in Registry.GetSectionList()
+            RegistrySection = CreateObject("roRegistrySection", section)
+            for each key in RegistrySection.GetKeyList()
+                i = i+1
+                print "Deleting " section + ":" key
+                RegistrySection.Delete(key)
+            end for
+            RegistrySection.flush()
+        end for
+        
+    end if
+    
+    print i.toStr() " Registry Keys Deleted"
+End Function
