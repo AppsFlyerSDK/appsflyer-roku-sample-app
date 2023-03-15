@@ -1,0 +1,11 @@
+title=AppsFlyer Roku Demo
+
+major_version=1
+minor_version=2
+build_version=3
+
+ui_resolutions=fhd
+
+splash_color=#9e80ad
+splash_min_time=0
+rsg_version=1.0

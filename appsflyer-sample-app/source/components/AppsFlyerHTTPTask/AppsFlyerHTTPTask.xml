@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+	
+<component name="AppsFlyerHTTPTask" extends="Task">
+
+	<interface>
+		<field id ="reqUrl" type = "string" />
+		<field id="conReqUrl" type="string" />
+		<field id ="json"  type = "string" />
+		<field id ="httpresponse" type="string" />
+		<field id ="httpresonsecode" type="string" />
+		<field id="callbackData" type="assocarray" />
+	</interface>
+
+	<script type="text/brightscript" uri="pkg:/components/AppsFlyerHTTPTask/AppsFlyerHTTPTask.brs" />
+	<script type="text/brightscript" uri="pkg:/source/AppsFlyerRokuSDK.brs" />
+</component>
