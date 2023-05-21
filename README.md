@@ -22,14 +22,21 @@ We recommend you use this sample app as a reference for integrating AppsFlyer in
 
 `AppsFlyerRokuSDK.brs`, included in the `source/appsflyer-integration-files` folder, contains the required code and logic to connect to AppsFlyer servers and report events.
 
-### `AppsFlyer().start("DEV_KEY", "APP_ID")`
+### Start
 
 This method receives your API key and app ID and initializes the AppsFlyer Module that sends first open and session requests to AppsFlyer.
+
+**Method signature**
+
+```
+AppsFlyer().start("DEV_KEY", "APP_ID")
+```
 
 **Usage**:
 
 ```
-AppsFlyer().start("DEV_KEY", "APP_ID")
+' Initialize the AppsFlyer integration (send first-open/session event)
+AppsFlyer().start("DEV_KEY", 123456123456)
 ```
 
 <span id="app-details">**Arguments**:</span>
@@ -37,9 +44,15 @@ AppsFlyer().start("DEV_KEY", "APP_ID")
 - `APP_ID`: Found via [ifAppInfo](https://developer.roku.com/docs/references/brightscript/interfaces/ifappinfo.md).
 - `DEV_KEY`: Get from the marketer or [AppsFlyer HQ](https://support.appsflyer.com/hc/en-us/articles/211719806-App-settings-#general-app-settings).
 
-### `AppsFlyer().logEvent(eventName, trackEventValues)`
+### LogEvent
 
 This method receives an event name and JSON object and sends in-app events to AppsFlyer.
+
+**Method signature**
+
+```
+AppsFlyer().logEvent(eventName, trackEventValues)
+```
 
 **Usage**:
 
