@@ -28,13 +28,13 @@ This method receives your API key and app ID and initializes the AppsFlyer Modul
 
 **Method signature**
 
-```
+```brs
 AppsFlyer().start("DEV_KEY", "APP_ID")
 ```
 
 **Usage**:
 
-```
+```brs
 ' Initialize the AppsFlyer integration (send first-open/session event)
 AppsFlyer().start("DEV_KEY", 123456123456)
 ```
@@ -50,13 +50,13 @@ This method receives an event name and JSON object and sends in-app events to Ap
 
 **Method signature**
 
-```
+```brs
 AppsFlyer().logEvent(eventName, trackEventValues)
 ```
 
 **Usage**:
 
-```
+```brs
 trackEventValues = CreateObject("roAssociativeArray")
 trackEventValues = {"af_revenue": 24.22, "af_currency":"ILS", "freeHandParam": "freeHandValue"}
 
@@ -68,7 +68,7 @@ AppsFlyer().logEvent("af_purchase", trackEventValues)
 1. Open the `appsflyer-sample-app` folder in VSCode.
 2. In `source/main.brs`, replace the following parameters with [your own](#app-details):
 
-```
+```brs
 devkey = "DEV_KEY"
 appid = "APP_ID"
 ```
@@ -76,17 +76,17 @@ appid = "APP_ID"
 3. Deploy the channel. ([Using this plugin](https://marketplace.visualstudio.com/items?itemName=mjmcaulay.roku-deploy-vscode) makes it easier)
 4. After the app loads:
 
-   1. Click **OK** to see the [start](#appsflyerstartdev_key-app_id) event details.
-   2. Click the options button (\*) and then **OK** to see the [logEvent](#appsflyerlogeventeventname-trackeventvalues).
+   1. Click **OK** to see the [start](#start) event details.
+   2. Click the options button (\*) and then **OK** to see the [logEvent](#logevent).
 
 ## Implementing AppsFlyer in your Roku channel
 
 ### Setup
 
 1. Copy the files from the `appsflyer-integration-files` folder into your project.
-2. Add the following code to your `main.brs` file and [Initialize](#appsflyerstartdev_key-app_id) the AppsFlyer integration:
+2. Add the following code to your `main.brs` file and [Initialize](#start) the AppsFlyer integration:
 
-```
+```brs
 Function Main(args as Dynamic) as Void
     ...
     showAppsflyerChannelSGScreen(args)
@@ -125,4 +125,4 @@ sub showAppsflyerChannelSGScreen(args as Dynamic)
 end sub
 ```
 
-3. Report [in-app events](#appsflyerlogeventeventname-trackeventvalues).
+3. Report [in-app events](#logevent).
