@@ -29,14 +29,14 @@ This method receives your API key and app ID and initializes the AppsFlyer Modul
 **Method signature**
 
 ```brs
-AppsFlyer().start("DEV_KEY", "APP_ID")
+AppsFlyer().start(<< DEV_KEY >>, << APP_ID >>)
 ```
 
 **Usage**:
 
 ```brs
 ' Initialize the AppsFlyer integration (send first-open/session event)
-AppsFlyer().start("DEV_KEY", 123456123456)
+AppsFlyer().start(<< DEV_KEY >>, << APP_ID >>)
 ```
 
 <span id="app-details">**Arguments**:</span>
@@ -69,8 +69,8 @@ AppsFlyer().logEvent("af_purchase", trackEventValues)
 2. In `source/main.brs`, replace the following parameters with [your own](#app-details):
 
 ```brs
-devkey = "DEV_KEY"
-appid = "APP_ID"
+devkey = << DEV_KEY >>
+appid = << APP_ID >>
 ```
 
 3. Deploy the channel. ([Using this plugin](https://marketplace.visualstudio.com/items?itemName=mjmcaulay.roku-deploy-vscode) makes it easier)
