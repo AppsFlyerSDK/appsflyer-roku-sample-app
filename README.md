@@ -2,7 +2,7 @@
 title: Roku (Brighscript)
 parentDoc: 64ad64dd8459f10012a22209
 category: 6446526dddf659006c7ea807
-order: 3
+order: 1
 hidden: false
 slug: roku-brighscript
 ---
