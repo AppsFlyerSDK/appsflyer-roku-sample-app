@@ -9,3 +9,5 @@ ui_resolutions=fhd
 splash_color=#9e80ad
 splash_min_time=0
 rsg_version=1.0
+
+mm_icon_focus_hd=pkg:/images/af_icon.png
