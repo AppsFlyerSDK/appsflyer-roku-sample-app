@@ -89,16 +89,20 @@ This method receives an event name and JSON object and sends in-app events to Ap
 **Method signature**
 
 ```brs
-AppsFlyer().logEvent(eventName, trackEventValues)
+logEvent: function(eventName as string, eventParameters as object, eventCustomParameters = {})
 ```
 
 **Usage**:
 
 ```brs
-trackEventValues = CreateObject("roAssociativeArray")
-trackEventValues = {"af_revenue": 24.22, "af_currency":"ILS", "freeHandParam": "freeHandValue"}
+' logEvent without eventCustomParameters
+trackEventParameters = { "af_revenue": 24.22, "af_currency": "ILS" }
+AppsFlyer().logEvent("af_purchase", trackEventParameters)
 
-AppsFlyer().logEvent("af_purchase", trackEventValues)
+' logEvent with eventCustomParameters
+trackEventParameters = { "af_revenue": 24.22, "af_currency": "ILS", "freeHandParam": "freeHandValue" }
+trackCustomEventParameters = { "freeHandParam": "freeHandValue" }
+AppsFlyer().logEvent("af_purchase", trackEventParameters, trackCustomEventParameters)
 ```
 
 ### SetCustomerUserId
@@ -136,12 +140,13 @@ appid = << APP_ID >>
 and then deploying it to Roku through Roku's Development Application Installer:
 ![Zipped source](https://files.readme.io/2835ab0-image.png) 
 
-4. After the app loads, you may use the following commands through the Roku remote:
+4. After the app loads, you may use the following commands through the [Roku remote](https://developer.roku.com/en-gb/docs/references/scenegraph/component-functions/onkeyevent.md):
    - Click the **down** button to [set customer user id](#setcustomeruserid) (cuid) to `"AF roku test CUID"`.
    - Click the **right** button to [set customer user id](#setcustomeruserid) (cuid) to `""` (reset it).
    - Click the **up** button to [stop](#stop) the SDK.
    - Click the **left** button to send the [start](#start) (first open/session) event.
    - Click the **options** button (\*) to send [logEvent](#logevent).
+   - Click the **replay** button (\*) to send [logEvent](#logevent) with custom parameters.
    - Click the **OK** button after every command in order to refresh the logs.
 
 ## Implementing AppsFlyer in your Roku channel

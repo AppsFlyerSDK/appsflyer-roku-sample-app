@@ -10,8 +10,12 @@ end function
 function onKeyEvent(key as string, press as boolean) as boolean
   if press then
     if (key = "options") then
-      trackEventValues = { "af_revenue": 24.22, "af_currency": "ILS", "freeHandParam": "freeHandValue" }
-      AppsFlyer().logEvent("af_purchase", trackEventValues)
+      trackEventParameters = { "af_revenue": 24.22, "af_currency": "ILS" }
+      AppsFlyer().logEvent("af_purchase", trackEventParameters)
+    else if (key = "replay") then
+      trackEventParameters = { "af_revenue": 24.22, "af_currency": "ILS", "freeHandParam": "freeHandValue" }
+      trackCustomEventParameters = { "freeHandParam": "freeHandValue" }
+      AppsFlyer().logEvent("af_purchase", trackEventParameters, trackCustomEventParameters)
     else if (key = "up") then
       AppsFlyer().stop()
     else if (key = "down") then
