@@ -4,7 +4,7 @@ function AppsFlyer() as object
             init: function(appsFlyerDevKey as string, appsFlyerAppId as string) : AppsFlyerCore().af_init_sdk(appsFlyerDevKey, appsFlyerAppId) : end function
             start: function() : AppsFlyerCore().af_trackAppLaunch(invalid) : end function
             trackDeepLink: function(deeplinkArgs as dynamic) : AppsFlyerCore().af_trackAppLaunch(deeplinkArgs) : end function
-            logEvent: function(eventName as string, eventValues as object) : AppsFlyerCore().af_trackEvent(eventName, eventValues) : end function
+            logEvent: function(eventName as string, eventParameters as object, eventCustomParameters = {}) : AppsFlyerCore().af_trackEvent(eventName, eventParameters, eventCustomParameters) : end function
             setCustomerUserId: function(cuid as string) : AppsFlyerCore().setCustomerUserId(cuid) : end function
             stop: function() : AppsFlyerCore().stop() : end function
             enableDebugLogs: function(isDebug as boolean) : AppsFlyerLogger().setLevel("debug") : end function
@@ -124,7 +124,7 @@ function AppsFlyerCore() as object
                 end if
             end function
 
-            af_trackEvent: function(eventName as string, eventValues as object) as void
+            af_trackEvent: function(eventName as string, eventParameters as object, eventCustomParameters as dynamic) as void
                 didInit = true
                 if m.appsFlyerGlobals.IsEmpty() then
                     didInit = m.af_init_globals()
@@ -142,7 +142,10 @@ function AppsFlyerCore() as object
                     this = {}
                     this.trackEvent = m.af_commonFields()
                     this.trackEvent.AddReplace("event_name", eventName)
-                    this.trackEvent.AddReplace("event_parameters", eventValues)
+                    this.trackEvent.AddReplace("event_parameters", eventParameters)
+                    if eventCustomParameters.Count() > 0 then
+                        this.trackEvent.AddReplace("event_custom_parameters", eventCustomParameters)
+                    end if
 
                     handleRequest(this.trackEvent, m.appsFlyerGlobals.kAFInAppEventsURL, invalid)
                 else return
