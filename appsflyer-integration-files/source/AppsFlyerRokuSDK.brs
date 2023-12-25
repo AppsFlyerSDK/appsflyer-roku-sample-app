@@ -1,10 +1,12 @@
 function AppsFlyer() as object
     if (GetGlobalAA().AppsFlyer = invalid) then
         afInstance = {
-            start: function(appsFlyerDevKey as string, appsFlyerAppId as string) : AppsFlyerCore().af_init_sdk(appsFlyerDevKey, appsFlyerAppId) : end function
-            trackAppLaunch: function() : AppsFlyerCore().af_trackAppLaunch(invalid) : end function
+            init: function(appsFlyerDevKey as string, appsFlyerAppId as string) : AppsFlyerCore().af_init_sdk(appsFlyerDevKey, appsFlyerAppId) : end function
+            start: function() : AppsFlyerCore().af_trackAppLaunch(invalid) : end function
             trackDeepLink: function(deeplinkArgs as dynamic) : AppsFlyerCore().af_trackAppLaunch(deeplinkArgs) : end function
             logEvent: function(eventName as string, eventValues as object) : AppsFlyerCore().af_trackEvent(eventName, eventValues) : end function
+            setCustomerUserId: function(cuid as string) : AppsFlyerCore().setCustomerUserId(cuid) : end function
+            stop: function() : AppsFlyerCore().stop() : end function
             enableDebugLogs: function(isDebug as boolean) : AppsFlyerLogger().setLevel("debug") : end function
             setLogLevel: function(logLevel as string) : AppsFlyerLogger().setLevel(logLevel) : end function
         }
@@ -73,7 +75,27 @@ function AppsFlyerCore() as object
                 AppsFlyerRegistry().init(appsFlyerDevKey, appsFlyerAppId)
                 m.af_init_globals()
                 AppsFlyerLogger().info("AppsFlyer SDK Initialized")
-                '                                    testCachefs() ' Test code - remove before deploy
+            end function
+
+            setCustomerUserId: function(cuid as string) as void
+                if m.appsFlyerGlobals.IsEmpty() then
+                    didInit = m.af_init_globals()
+                end if
+
+                if m.appsFlyerGlobals.isStopped = false then
+                    AppsFlyerLogger().info("Cannot set CustomerUserID while the SDK has started.")
+                    return
+                end if
+                AppsFlyerLogger().info("Customer User ID has been set.")
+                m.appsFlyerGlobals.customer_user_id = cuid
+            end function
+
+            stop: function() as void
+                if m.appsFlyerGlobals.IsEmpty() then
+                    didInit = m.af_init_globals()
+                end if
+                m.appsFlyerGlobals.isStopped = true
+                AppsFlyerLogger().info("The AppsFlyer SDK has been stopped.")
             end function
 
             af_trackAppLaunch: function(deeplinkArgs as dynamic) as void
@@ -87,8 +109,7 @@ function AppsFlyerCore() as object
                     AppsFlyerRegistry().set("AppsFlyerCounter", m.appsFlyerGlobals.counter)
                     this = {}
                     this.launchEvent = m.af_commonFields()
-                    this.launchEvent.AddReplace("event_name", "Launched")
-                    this.launchEvent.AddReplace("event_parameters", "")
+                    m.appsFlyerGlobals.isStopped = false
 
                     if deeplinkArgs <> invalid
                         this.launchEvent = m.af_addDLParams(this.launchEvent, deeplinkArgs)
@@ -107,6 +128,11 @@ function AppsFlyerCore() as object
                 didInit = true
                 if m.appsFlyerGlobals.IsEmpty() then
                     didInit = m.af_init_globals()
+                end if
+
+                if m.appsFlyerGlobals.isStopped = true then
+                    AppsFlyerLogger().info("Cannot send inapp-event while the SDK is stopped.")
+                    return
                 end if
 
                 if didInit then
@@ -149,6 +175,8 @@ function AppsFlyerCore() as object
                 _appsFlyerGlobals.advertiserId = m.deviceInfo.GetRIDA()
                 _appsFlyerGlobals.appId = AppsFlyerConstants().APP_ID_PREFIX + m.appInfo.GetID()
                 _appsFlyerGlobals.appVersion = m.appInfo.GetVersion()
+                _appsFlyerGlobals.isStopped = true
+                _appsFlyerGlobals.customer_user_id = invalid
 
                 _appsFlyerGlobals.kAppFlyerURL = AppsFlyerConstants().SESSIONS_ENDPOINT + _appsFlyerGlobals.appsFlyerAppId
                 _appsFlyerGlobals.kAFInAppEventsURL = AppsFlyerConstants().EVENTS_ENDPOINT + _appsFlyerGlobals.appsFlyerAppId
@@ -209,6 +237,10 @@ function AppsFlyerCore() as object
                         limit_ad_tracking: false,
                         app_version: m.appsFlyerGlobals.appVersion
                     }
+                end if
+
+                if m.appsFlyerGlobals.customer_user_id <> invalid and m.appsFlyerGlobals.customer_user_id <> "" then
+                    common.addReplace("customer_user_id", m.appsFlyerGlobals.customer_user_id)
                 end if
 
                 AppsFlyerLogger().debug("buildCommonEventFields")
@@ -485,7 +517,6 @@ function AppsFlyerLogger() as object
                 ' Temp file text code - Remove before release
 
                 formatedText = "" + m.PREFIX + " [" + UCase(logLevel) + "] " + AppsFlyerDateUtils().getCurrentTime() + " : " + msg
-
                 isLogExists = MatchFiles("tmp:/", "aflog.txt")
                 if isLogExists.Count() = 0
                     afText = ""
@@ -541,20 +572,3 @@ function handleRequest(json as object, reqUrl as string, commons as object) as v
     m.HttpsTaskContent.json = FormatJson(json, 0)
     m.HttpsTaskContent.control = "RUN"
 end function
-
-' Test code - remove before deploy
-'Function testCachefs() as void
-'     cnt = 0
-'     counterFile = ReadAsciiFile("cachefs:/cntTest.txt")
-'     if counterFile <> invalid and counterFile <> "" then
-'       cnt = counterFile.toInt()
-'       cnt++
-'       cntStr = cnt.ToStr()
-'       AppsFlyerLogger().info("COUNTER IN FILE: "+cntStr)
-'       WriteAsciiFile("cachefs:/cntTest.txt", cntStr)
-'    else
-'       cntStr = cnt.ToStr()
-'       AppsFlyerLogger().info("COUNTER IN FILE: "+cntStr)
-'       WriteAsciiFile("cachefs:/cntTest.txt", cntStr)
-'    endif
-'End Function

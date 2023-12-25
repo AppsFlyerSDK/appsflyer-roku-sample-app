@@ -11,8 +11,15 @@ function onKeyEvent(key as string, press as boolean) as boolean
   if press then
     if (key = "options") then
       trackEventValues = { "af_revenue": 24.22, "af_currency": "ILS", "freeHandParam": "freeHandValue" }
-
       AppsFlyer().logEvent("af_purchase", trackEventValues)
+    else if (key = "up") then
+      AppsFlyer().stop()
+    else if (key = "down") then
+      AppsFlyer().setCustomerUserId("AF roku test CUID")
+    else if (key = "right") then
+      AppsFlyer().setCustomerUserId("")
+    else if (key = "left") then
+      AppsFlyer().start()
     else if (key = "OK") then
       scrolltext = m.top.findNode("exampleScrollableText")
       afText = ReadAsciiFile("tmp:/aflog.txt")

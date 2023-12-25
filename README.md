@@ -23,27 +23,64 @@ We recommend you use this sample app as a reference for integrating AppsFlyer in
 
 `AppsFlyerRokuSDK.brs`, included in the `source/appsflyer-integration-files` folder, contains the required code and logic to connect to AppsFlyer servers and report events.
 
-### Start
+### Init
 
 This method receives your API key and app ID and initializes the AppsFlyer Module that sends first open and session requests to AppsFlyer.
 
 **Method signature**
 
 ```brs
-AppsFlyer().start(<< DEV_KEY >>, << APP_ID >>)
+AppsFlyer().init(<< DEV_KEY >>, << APP_ID >>)
 ```
 
 **Usage**:
 
 ```brs
 ' Initialize the AppsFlyer integration (send first-open/session event)
-AppsFlyer().start(<< DEV_KEY >>, << APP_ID >>)
+AppsFlyer().init(<< DEV_KEY >>, << APP_ID >>)
 ```
 
 <span id="app-details">**Arguments**:</span>
 
 - `APP_ID`: Found via [ifAppInfo](https://developer.roku.com/docs/references/brightscript/interfaces/ifappinfo.md).
 - `DEV_KEY`: Get from the marketer or [AppsFlyer HQ](https://support.appsflyer.com/hc/en-us/articles/211719806-App-settings-#general-app-settings).
+
+
+### Start
+
+This method sends first open and session requests to AppsFlyer.
+
+**Method signature**
+
+```brs
+start()
+```
+
+**Usage**:
+
+```brs
+AppsFlyer().start()
+```
+
+### Stop
+
+This method stops the SDK from functioning and communicating with AppsFlyer servers. It's used when implementing user opt-in/opt-out.
+
+**Method signature**
+
+```brs
+stop()
+```
+
+**Usage**:
+
+```brs
+' Starting the SDK
+AppsFlyer().start()
+' ...
+' Stopping the SDK, preventing further communication with AppsFlyer
+AppsFlyer().stop()
+```
 
 ### LogEvent
 
@@ -64,6 +101,25 @@ trackEventValues = {"af_revenue": 24.22, "af_currency":"ILS", "freeHandParam": "
 AppsFlyer().logEvent("af_purchase", trackEventValues)
 ```
 
+### SetCustomerUserId
+
+This method sets a customer ID that enables you to cross-reference your unique ID with the AppsFlyer unique ID and other device IDs. Note: You can only use this method before calling `Start()`.
+The customer ID is available in raw data reports and in the postbacks sent via API.
+
+**Method signature**
+
+```c#
+setCustomerUserId(string cuid)
+```
+
+**Usage**:
+
+```c#
+AppsFlyer().init(devkey, appid)
+AppsFlyer().setCustomerUserId("")
+AppsFlyer().start()
+```
+
 ## Running the sample app
 
 1. Open the `appsflyer-sample-app` folder in VSCode.
@@ -73,19 +129,27 @@ AppsFlyer().logEvent("af_purchase", trackEventValues)
 devkey = << DEV_KEY >>
 appid = << APP_ID >>
 ```
+3. Deploy the channel: 
+    - by ([using this plugin](https://marketplace.visualstudio.com/items?itemName=mjmcaulay.roku-deploy-vscode) makes it easier), 
+    - by zipping the content of the `source` folder
+![Zipped source](https://files.readme.io/9347db7-image.png)   
+and then deploying it to Roku through Roku's Development Application Installer:
+![Zipped source](https://files.readme.io/2835ab0-image.png) 
 
-3. Deploy the channel. ([Using this plugin](https://marketplace.visualstudio.com/items?itemName=mjmcaulay.roku-deploy-vscode) makes it easier)
-4. After the app loads:
-
-   1. Click **OK** to see the [start](#start) event details.
-   2. Click the options button (\*) and then **OK** to see the [logEvent](#logevent).
+4. After the app loads, you may use the following commands through the Roku remote:
+   - Click the **down** button to [set customer user id](#setcustomeruserid) (cuid) to `"AF roku test CUID"`.
+   - Click the **right** button to [set customer user id](#setcustomeruserid) (cuid) to `""` (reset it).
+   - Click the **up** button to [stop](#stop) the SDK.
+   - Click the **left** button to send the [start](#start) (first open/session) event.
+   - Click the **options** button (\*) to send [logEvent](#logevent).
+   - Click the **OK** button after every command in order to refresh the logs.
 
 ## Implementing AppsFlyer in your Roku channel
 
 ### Setup
 
 1. Copy the files from the `appsflyer-integration-files` folder into your project.
-2. Add the following code to your `main.brs` file and [Initialize](#start) the AppsFlyer integration:
+2. Add the following code to your `main.brs` file and [Initialize](#init) the AppsFlyer integration:
 
 ```brs
 Function Main(args as Dynamic) as Void
@@ -101,16 +165,10 @@ sub showAppsflyerChannelSGScreen(args as Dynamic)
     scene = screen.CreateScene("AppsFlyerScene")
     screen.show()
 
-    ' Initialize the AppsFlyer integration (send first-open/session event)
-    AppsFlyer().start(DEV_KEY, APP_ID)
+    ' Initialize the AppsFlyer integration
+    AppsFlyer().init(DEV_KEY, APP_ID)
     ' Enable debugging if necessary
     AppsFlyer().enableDebugLogs(true) ' same as AppsFlyer().setLogLevel("debug")
-
-    if args.Lookup("contentId") <> invalid then
-        AppsFlyer().trackDeeplink(args)
-    else
-        AppsFlyer().trackAppLaunch()
-    endif
 
     ' ConversionData response arrives here
     while true
@@ -125,5 +183,5 @@ sub showAppsflyerChannelSGScreen(args as Dynamic)
     end while
 end sub
 ```
-
-3. Report [in-app events](#logevent).
+3. [Start](#start) the SDK.
+4. Report [in-app events](#logevent).
