@@ -176,14 +176,15 @@ function AppsFlyerCore() as object
                 _appsFlyerGlobals.iaecounter = AppsFlyerRegistry().get(AppsFlyerConstants().RegistryConstants.IAECOUNTER)
                 _appsFlyerGlobals.firstLaunchDate = AppsFlyerRegistry().get(AppsFlyerConstants().RegistryConstants.FIRSTLAUNCHDATE)
                 _appsFlyerGlobals.advertiserId = m.deviceInfo.GetRIDA()
-                _appsFlyerGlobals.appId = AppsFlyerConstants().APP_ID_PREFIX + m.appInfo.GetID()
                 _appsFlyerGlobals.appVersion = m.appInfo.GetVersion()
                 _appsFlyerGlobals.isStopped = true
                 _appsFlyerGlobals.customer_user_id = invalid
-
                 _appsFlyerGlobals.kAppFlyerURL = AppsFlyerConstants().SESSIONS_ENDPOINT + _appsFlyerGlobals.appsFlyerAppId
                 _appsFlyerGlobals.kAFInAppEventsURL = AppsFlyerConstants().EVENTS_ENDPOINT + _appsFlyerGlobals.appsFlyerAppId
                 _appsFlyerGlobals.kAFConversionURL = AppsFlyerConstants().CONVERSION_ENDPOINT + _appsFlyerGlobals.appsFlyerAppId
+
+                ' currently not in use - please refer to _appsFlyerGlobals.appsFlyerId
+                _appsFlyerGlobals.appId = AppsFlyerConstants().APP_ID_PREFIX + m.appInfo.GetID() 
                 ' _appsFlyerGlobals.kAppFlyerURL       = AppsFlyerConstants().SESSIONS_ENDPOINT + _appsFlyerGlobals.appId
                 ' _appsFlyerGlobals.kAFInAppEventsURL  = AppsFlyerConstants().EVENTS_ENDPOINT + _appsFlyerGlobals.appId
                 ' _appsFlyerGlobals.kAFConversionURL   = AppsFlyerConstants().CONVERSION_ENDPOINT + _appsFlyerGlobals.appsFlyerId
