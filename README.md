@@ -45,6 +45,9 @@ AppsFlyer().init(<< DEV_KEY >>, << APP_ID >>)
 - `APP_ID`: Found via [ifAppInfo](https://developer.roku.com/docs/references/brightscript/interfaces/ifappinfo.md).
 - `DEV_KEY`: Get from the marketer or [AppsFlyer HQ](https://support.appsflyer.com/hc/en-us/articles/211719806-App-settings-#general-app-settings).
 
+> **_NOTE:_** It is recommended to set the `APP_ID` manually.
+>
+> When retrieving the `APP_ID` with `GetID()` [roAppInfo](https://developer.roku.com/en-gb/docs/references/brightscript/interfaces/ifappinfo.md), the channel ID is "dev" if the application is sideloaded, and then app will not be able to communicate with the AppsFlyer endpoint.
 
 ### Start
 
@@ -133,12 +136,11 @@ AppsFlyer().start()
 devkey = << DEV_KEY >>
 appid = << APP_ID >>
 ```
-3. Deploy the channel: 
-    - by ([using this plugin](https://marketplace.visualstudio.com/items?itemName=mjmcaulay.roku-deploy-vscode) makes it easier), 
-    - by zipping the content of the `source` folder
-![Zipped source](https://files.readme.io/9347db7-image.png)   
-and then deploying it to Roku through Roku's Development Application Installer:
-![Zipped source](https://files.readme.io/2835ab0-image.png) 
+
+3. Deploy the channel: - by ([using this plugin](https://marketplace.visualstudio.com/items?itemName=mjmcaulay.roku-deploy-vscode) makes it easier), - by zipping the content of the `source` folder
+   ![Zipped source](https://files.readme.io/9347db7-image.png)  
+   and then deploying it to Roku through Roku's Development Application Installer:
+   ![Zipped source](https://files.readme.io/2835ab0-image.png)
 
 4. After the app loads, you may use the following commands through the [Roku remote](https://developer.roku.com/en-gb/docs/references/scenegraph/component-functions/onkeyevent.md):
    - Click the **down** button to [set customer user id](#setcustomeruserid) (cuid) to `"AF roku test CUID"`.
@@ -188,5 +190,6 @@ sub showAppsflyerChannelSGScreen(args as Dynamic)
     end while
 end sub
 ```
+
 3. [Start](#start) the SDK.
 4. Report [in-app events](#logevent).
