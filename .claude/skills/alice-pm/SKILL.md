@@ -320,9 +320,18 @@ This reminder is at the bottom intentionally — it fires after Alice's output i
 
 ---
 
+## Reference
+
+- `docs/issue-cases/INDEX.md` — hot zones map and Component × Bug Class index (challenge Dave against it)
+- `docs/issue-cases/GUARDRAILS.md` — engineering guardrails + Tech Design Checklist
+- `docs/issue-cases/IC-NNN.md` — individual historical cases (e.g. IC-003 = the DELIVERY-116076 counter/attribution-loss defect)
+- `docs/features/INDEX.md` — feature catalog index
+
+---
+
 ## Domain-Specific Notes
 
-- **Attribution correctness is the product.** The primary success metric is that installs and events are attributed exactly once. Challenge anything that risks double-counting a first_open, dropping an install, or mis-selecting the first_open vs. session vs. in-app endpoint (this was the core of DELIVERY-123841).
+- **Attribution correctness is the product.** The primary success metric is that installs and events are attributed exactly once. Challenge anything that risks double-counting a first_open, dropping an install, or mis-selecting the first_open vs. session vs. in-app endpoint.
 - **Public API stability.** The `AppsFlyer()` interface (`init`, `start`, `stop`, `logEvent`, `setCustomerUserId`, `trackDeepLink`, `enableDebugLogs`, `setLogLevel`) is a contract with every integrator. Any signature or behavior change is a breaking change — require a migration note and version bump.
 - **Payload/endpoint contract is server-visible.** New or renamed request fields, or changes to `isFirstCall`, require Erin analysis and (ideally) AppsFlyer server-side sign-off before shipping.
 - **Privacy.** RIDA (Roku Advertising ID) and Limit-Ad-Tracking (LAT) handling is a compliance surface. Any change touching `device_ids`, `limit_ad_tracking`, or `customer_user_id` needs an explicit privacy assessment.

@@ -38,6 +38,17 @@ The following do not require a PRD or Alice review — invoke Dave directly:
 Anything that changes the public `AppsFlyer()` API, the request payload shape, or
 the first-open/session/in-app endpoint selection logic is NOT maintenance — use `/af-ship`.
 
+## Before Making Code Changes
+
+Before writing any code that touches a component listed in `docs/issue-cases/INDEX.md`:
+
+1. Open `docs/issue-cases/INDEX.md` and find the component in the Hot Zones Map.
+2. Read each linked IC case — pay attention to the **Takeaway** rule, and load `docs/issue-cases/GUARDRAILS.md`.
+3. Explicitly state which past issues are relevant and how the new code avoids repeating them.
+
+Do this **before writing any code** — not as a post-review step.
+The Hot Zones Map in `docs/issue-cases/INDEX.md` is the authoritative, always-up-to-date source. Do not duplicate it here.
+
 ## Output contract
 
 Every `/af-ship` deliverable must include:
