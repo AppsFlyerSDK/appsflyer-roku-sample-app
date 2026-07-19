@@ -105,8 +105,7 @@ function AppsFlyerCore() as object
                 end if
 
                 if didInit then
-                    m.appsFlyerGlobals.counter = AppsFlyerUtils().incrementCounter(m.appsFlyerGlobals.counter)
-                    AppsFlyerRegistry().set("AppsFlyerCounter", m.appsFlyerGlobals.counter)
+                    m.appsFlyerGlobals.counter = AppsFlyerRegistry().get(AppsFlyerConstants().RegistryConstants.SESSIONCOUNTER)
                     this = {}
                     this.launchEvent = m.af_commonFields()
                     m.appsFlyerGlobals.isStopped = false
@@ -115,7 +114,7 @@ function AppsFlyerCore() as object
                         this.launchEvent = m.af_addDLParams(this.launchEvent, deeplinkArgs)
                     end if
 
-                    if m.appsFlyerGlobals.counter = "0" or m.appsFlyerGlobals.counter = "1" or m.appsFlyerGlobals.counter = "2"
+                    if m.appsFlyerGlobals.counter = "0" then
                         handleRequest(this.launchEvent, m.appsFlyerGlobals.kAFConversionURL, m.appsFlyerGlobals)
                     else
                         handleRequest(this.launchEvent, m.appsFlyerGlobals.kAppFlyerURL, m.appsFlyerGlobals)
@@ -247,7 +246,9 @@ function AppsFlyerCore() as object
                 end if
 
                 AppsFlyerLogger().debug("buildCommonEventFields")
-                common.addReplace("isFirstCall", (common.counter = "1").ToStr())
+                ' true only while the first_open has not yet been confirmed, false once on sessions.
+                isFirstOpen = (m.appsFlyerGlobals.counter = "0")
+                common.addReplace("isFirstCall", isFirstOpen.ToStr())
 
                 ' common.addReplace("firstLaunchDate", m.appsFlyerGlobals.firstLaunchDate)
                 ' common.AddReplace("installDate", m.appsFlyerGlobals.firstLaunchDate)
