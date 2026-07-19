@@ -9,19 +9,34 @@ sub sendHttps()
     httpresponse = 0
     reqUrl = m.top.reqUrl
     json = m.top.json
-    if (json <> "") then
-        AppsFlyerLogger().debug("Request data: " + json)
-        AppsFlyerLogger().debug("Request reqUrl: " + reqUrl)
+    ' Guard: never attempt to sign/send an empty payload.
+    if json = invalid or json = "" then
+        AppsFlyerLogger().error("Aborting request: empty payload, nothing to send. reqUrl: " + reqUrl)
+        m.top.httpresponse = ""
+        m.top.httpresonseCode = "-1"
+        return
     end if
+
+    AppsFlyerLogger().debug("Request data: " + json)
+    AppsFlyerLogger().debug("Request reqUrl: " + reqUrl)
 
     hmac = CreateObject("roHMAC")
     signature_key = CreateObject("roByteArray")
     signature_key.fromAsciiString(AppsFlyerRegistry().get(AppsFlyerConstants().RegistryConstants.DEVKEY))
+    result = invalid
     if hmac.setup("sha256", signature_key) = 0
         message = CreateObject("roByteArray")
         message.fromAsciiString(json)
         result = hmac.process(message)
         ' AppsFlyerLogger().debug("auth: " + LCase(result.ToHexString()))
+    end if
+
+    ' Guard: do not dereference an Invalid HMAC result.
+    if result = invalid then
+        AppsFlyerLogger().error("Aborting request: failed to generate HMAC signature. reqUrl: " + reqUrl)
+        m.top.httpresponse = ""
+        m.top.httpresonseCode = "-1"
+        return
     end if
 
     request = CreateObject("roUrlTransfer")
