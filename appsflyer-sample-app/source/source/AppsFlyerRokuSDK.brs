@@ -114,6 +114,9 @@ function AppsFlyerCore() as object
                         this.launchEvent = m.af_addDLParams(this.launchEvent, deeplinkArgs)
                     end if
 
+                    isFirstOpen = (m.appsFlyerGlobals.counter = "0")
+                    this.launchEvent.addReplace("isFirstCall", isFirstOpen.ToStr())
+
                     if m.appsFlyerGlobals.counter = "0" then
                         handleRequest(this.launchEvent, m.appsFlyerGlobals.kAFConversionURL, m.appsFlyerGlobals)
                     else
@@ -247,9 +250,7 @@ function AppsFlyerCore() as object
                 end if
 
                 AppsFlyerLogger().debug("buildCommonEventFields")
-                ' true only while the first_open has not yet been confirmed, false once on sessions.
-                isFirstOpen = (m.appsFlyerGlobals.counter = "0")
-                common.addReplace("isFirstCall", isFirstOpen.ToStr())
+                common.addReplace("isFirstCall", "false")
 
                 ' common.addReplace("firstLaunchDate", m.appsFlyerGlobals.firstLaunchDate)
                 ' common.AddReplace("installDate", m.appsFlyerGlobals.firstLaunchDate)

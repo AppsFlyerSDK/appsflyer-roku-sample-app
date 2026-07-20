@@ -103,9 +103,11 @@ function getConversionData() as void
             AppsFlyerRegistry().set("conversionData", response)
             resolveFirstOpen()
             executeCallbacks(response, false)
-        else if code = 400 or code = 401 or code = 403 then
-            AppsFlyerLogger().error("first_open definitively rejected (code " + responseCode + "); advancing state so sessions can proceed.")
+        else if code = 400 then
+            AppsFlyerLogger().error("first_open rejected as malformed (400); advancing state so sessions can proceed.")
             resolveFirstOpen()
+        else if code = 401 or code = 403 then
+            AppsFlyerLogger().error("first_open auth-rejected (code " + responseCode + "); will retry next launch — check dev key.")
         end if
     end if
 end function
@@ -122,7 +124,7 @@ function executeCallbacks(response as string, isCache as boolean) as void
     if isCache then
         AppsFlyerLogger().debug("ConversionData exists in cache, returning cached response: " + response)
     end if
-    if response = invalid or response = "" then
+    if response = "" then
         m.top.callbackData = invalid
         return
     end if
