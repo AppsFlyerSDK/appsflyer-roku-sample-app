@@ -105,8 +105,7 @@ function AppsFlyerCore() as object
                 end if
 
                 if didInit then
-                    m.appsFlyerGlobals.counter = AppsFlyerUtils().incrementCounter(m.appsFlyerGlobals.counter)
-                    AppsFlyerRegistry().set("AppsFlyerCounter", m.appsFlyerGlobals.counter)
+                    m.appsFlyerGlobals.counter = AppsFlyerRegistry().get(AppsFlyerConstants().RegistryConstants.SESSIONCOUNTER)
                     this = {}
                     this.launchEvent = m.af_commonFields()
                     m.appsFlyerGlobals.isStopped = false
@@ -115,7 +114,12 @@ function AppsFlyerCore() as object
                         this.launchEvent = m.af_addDLParams(this.launchEvent, deeplinkArgs)
                     end if
 
-                    if m.appsFlyerGlobals.counter = "0" or m.appsFlyerGlobals.counter = "1" or m.appsFlyerGlobals.counter = "2"
+                    ' Mirror endpoint selection: true only while first_open is unconfirmed
+                    ' (counter still "0"), false on sessions (GR-04, IC-003).
+                    isFirstOpen = (m.appsFlyerGlobals.counter = "0")
+                    this.launchEvent.addReplace("isFirstCall", isFirstOpen.ToStr())
+
+                    if m.appsFlyerGlobals.counter = "0" then
                         handleRequest(this.launchEvent, m.appsFlyerGlobals.kAFConversionURL, m.appsFlyerGlobals)
                     else
                         handleRequest(this.launchEvent, m.appsFlyerGlobals.kAppFlyerURL, m.appsFlyerGlobals)
@@ -247,7 +251,7 @@ function AppsFlyerCore() as object
                 end if
 
                 AppsFlyerLogger().debug("buildCommonEventFields")
-                common.addReplace("isFirstCall", (common.counter = "1").ToStr())
+                common.addReplace("isFirstCall", "false")
 
                 ' common.addReplace("firstLaunchDate", m.appsFlyerGlobals.firstLaunchDate)
                 ' common.AddReplace("installDate", m.appsFlyerGlobals.firstLaunchDate)

@@ -78,10 +78,15 @@ function getConversionData() as void
     response = m.top.httpresponse
     endpoint = m.top.reqUrl
 
+    code = 0
+    if responseCode <> invalid then
+        code = responseCode.ToInt()
+    end if
+    isSuccess = (code >= 200 and code < 300)
+
     cachedResponse = AppsFlyerRegistry().get("conversionData")
 
-    ' if Instr(0, endpoint, AppsFlyerConstants().SESSIONS_ENDPOINT) <> 0 and responseCode = "200" then
-    if Instr(0, endpoint, AppsFlyerConstants().SESSIONS_ENDPOINT) <> 0 and responseCode = "200" then
+    if Instr(0, endpoint, AppsFlyerConstants().SESSIONS_ENDPOINT) <> 0 and isSuccess then
         if cachedResponse = invalid then
             m.HttpsTaskContent = createObject("RoSGNode", "AppsFlyerHTTPTask")
             m.HttpsTaskContent.observeField("httpresonseCode", "getConversionData") ' only passes the port this way (when commented out only on 2nd luanch), why?
@@ -92,17 +97,36 @@ function getConversionData() as void
             '            ?"fromCache"
             executeCallbacks(cachedResponse, true)
         end if
-    else if Instr(0, endpoint, AppsFlyerConstants().CONVERSION_ENDPOINT) <> 0 and responseCode = "200" then
-        AppsFlyerLogger().info("ConversionData Response: " + response)
-        AppsFlyerRegistry().set("conversionData", response)
-        '        ?"NOTfromCache: "response
-        executeCallbacks(response, false)
+    else if Instr(0, endpoint, AppsFlyerConstants().CONVERSION_ENDPOINT) <> 0 then
+        if isSuccess then
+            AppsFlyerLogger().info("ConversionData Response: " + response)
+            AppsFlyerRegistry().set("conversionData", response)
+            resolveFirstOpen()
+            executeCallbacks(response, false)
+        else if code = 400 then
+            AppsFlyerLogger().error("first_open rejected as malformed (400); advancing state so sessions can proceed.")
+            resolveFirstOpen()
+        else if code = 401 or code = 403 then
+            AppsFlyerLogger().error("first_open auth-rejected (code " + responseCode + "); will retry next launch — check dev key.")
+        end if
+    end if
+end function
+
+' Advance the persisted first-open state exactly once.
+function resolveFirstOpen() as void
+    currentCounter = AppsFlyerRegistry().get(AppsFlyerConstants().RegistryConstants.SESSIONCOUNTER)
+    if currentCounter = invalid or currentCounter = "0" then
+        AppsFlyerRegistry().set(AppsFlyerConstants().RegistryConstants.SESSIONCOUNTER, "1")
     end if
 end function
 
 function executeCallbacks(response as string, isCache as boolean) as void
     if isCache then
         AppsFlyerLogger().debug("ConversionData exists in cache, returning cached response: " + response)
+    end if
+    if response = "" then
+        m.top.callbackData = invalid
+        return
     end if
     callbackData = parseJSON(response)
     m.top.callbackData = callbackData
