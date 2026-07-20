@@ -10,8 +10,8 @@ feature_ref: [F-007]
 **Bug class:** api-contract
 **Severity:** MEDIUM
 **Ticket:** DELIVERY-106204 (P2 Bug, Backlog)
-**Commit:** — (not yet fixed)
-**Branch:** —
+**Commit:** — (pending)
+**Branch:** DELIVERY-106204-fix-os-issue
 **Date:** 2025-11-10
 
 ### What Happened
@@ -24,7 +24,16 @@ A large number of `roku`-platform conversion records in the datalake carry `os_v
 `roDeviceInfo.GetVersion()` is deprecated and unreliable across firmware versions. The SDK consumes its return value directly, with no validation and without using the supported replacement API.
 
 ### Fix Applied
-Not yet fixed (Backlog). Recommended: read the OS version via the supported `roDeviceInfo.GetOSVersion()` (major/minor/revision/build) API, format it explicitly, and reject/clamp obviously-invalid sentinels (e.g. `999.*`) before sending.
+Fixed on branch `DELIVERY-106204-fix-os-issue`. `af_commonFields` now sources
+`device_os_version` via a new `af_getOsVersionString` helper that reads the
+supported `roDeviceInfo.GetOSVersion()`, composes `major.minor.revision` (build
+excluded), and falls back to `""` when `GetOSVersion()` returns `invalid`/empty.
+Switching off the deprecated `GetVersion()` removes the masked `999.*` placeholder
+at the source — `GetOSVersion()` returns real, structured values — so no explicit
+sentinel check is kept (only crash-safety guards on `invalid`/empty remain).
+(`GetOSVersion()` requires Roku OS 9.2+; pre-9.2 firmware is out of the supported
+range.) Mirrored across both SDK copies; verified on a physical Roku (OS `15.3.4`)
+by inspecting the request body.
 
 ### Takeaway
 Treat every value read from a platform/device API as untrusted input: validate it against a sane range and prefer the currently-supported API (`GetOSVersion`) over deprecated ones (`GetVersion`). A "successful" call can still return a garbage sentinel.

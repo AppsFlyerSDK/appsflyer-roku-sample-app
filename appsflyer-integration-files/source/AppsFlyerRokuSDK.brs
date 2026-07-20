@@ -16,7 +16,7 @@ function AppsFlyer() as object
 end function
 
 function AppsFlyerConstants() as object
-    SDK_VERSION = "1.12.0" ' 1.12 = MIN VERSION REQUIRED FOR DEEPLINKING ON ANDROID ENDPOINT - CHECK WITH RTA (if this can be changed)
+    SDK_VERSION = "1.12.1" ' 1.12 = MIN VERSION REQUIRED FOR DEEPLINKING ON ANDROID ENDPOINT - CHECK WITH RTA (if this can be changed)
 
     SESSIONS_ENDPOINT = "https://events.appsflyer.com/v1.0/c2s/session/app/roku/"
     EVENTS_ENDPOINT = "https://events.appsflyer.com/v1.0/c2s/inapp/app/roku/"
@@ -214,9 +214,7 @@ function AppsFlyerCore() as object
             af_commonFields: function() as object
 
                 rida = m.deviceInfo.GetRIDA()
-                device_ver = m.deviceInfo.GetVersion()
-                regex = CreateObject("roRegex", "[A-Za-z]", "")
-                device_ver = regex.ReplaceAll(device_ver, "")
+                device_ver = af_getOsVersionString(m.deviceInfo)
 
                 isAdvertiserIdEnabled = (m.deviceInfo.IsRIDADisabled() <> true).ToStr()
                 model = m.deviceInfo.GetModelDetails().VendorName + " " + m.deviceInfo.GetModelDetails().ModelNumber
@@ -578,4 +576,15 @@ function handleRequest(json as object, reqUrl as string, commons as object) as v
     m.HttpsTaskContent.reqUrl = reqUrl
     m.HttpsTaskContent.json = FormatJson(json, 0)
     m.HttpsTaskContent.control = "RUN"
+end function
+
+function af_getOsVersionString(deviceInfo as object) as string
+    if deviceInfo = invalid then return ""
+
+    os = deviceInfo.GetOSVersion()
+    if os = invalid then return ""
+
+    if os.major = invalid or os.major = "" then return ""
+
+    return os.major + "." + os.minor + "." + os.revision
 end function
