@@ -30,10 +30,15 @@ supported `roDeviceInfo.GetOSVersion()`, composes `major.minor.revision` (build
 excluded), and falls back to `""` when `GetOSVersion()` returns `invalid`/empty.
 Switching off the deprecated `GetVersion()` removes the masked `999.*` placeholder
 at the source — `GetOSVersion()` returns real, structured values — so no explicit
-sentinel check is kept (only crash-safety guards on `invalid`/empty remain).
-(`GetOSVersion()` requires Roku OS 9.2+; pre-9.2 firmware is out of the supported
-range.) Mirrored across both SDK copies; verified on a physical Roku (OS `15.3.4`)
-by inspecting the request body.
+sentinel check is kept. Crash-safety guards remain: `invalid`/empty `major` yields
+`""`. `minor`/`revision` were added to `GetOSVersion()` after its 9.2 debut (per
+Roku OS release notes), so on older firmware they can be absent; a missing octet
+is omitted by truncating at the first gap (e.g. `15.3` or `15`), never zero-filled
+and never emitted as a gapped string — which also avoids a `string + invalid`
+concatenation that would abort `af_commonFields` (which runs on every launch and
+event — GR-01). (`GetOSVersion()` requires Roku OS 9.2+; pre-9.2 firmware is out
+of the supported range.) Mirrored across both SDK copies; verified on a physical
+Roku (OS `15.3.4`) by inspecting the request body.
 
 ### Takeaway
 Treat every value read from a platform/device API as untrusted input: validate it against a sane range and prefer the currently-supported API (`GetOSVersion`) over deprecated ones (`GetVersion`). A "successful" call can still return a garbage sentinel.

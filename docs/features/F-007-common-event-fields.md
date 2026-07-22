@@ -23,7 +23,12 @@ non-compliant payloads. `device_os_version` is sourced from the supported
 `invalid`/empty. This replaces the deprecated `GetVersion()`, whose masked
 `999.*` placeholder was the original bug — `GetOSVersion()` returns real,
 structured values and does not exhibit it, so no explicit sentinel check is
-kept. (`GetOSVersion()` requires Roku OS 9.2+; genuinely pre-9.2 firmware is out
+kept. `minor`/`revision` were added to `GetOSVersion()` after its 9.2 debut (per
+Roku OS release notes), so on older firmware they can be absent; a missing octet
+is omitted by truncating at the first gap (e.g. `15.3` or `15`) rather than
+zero-filled, and `major` is required. Truncating also avoids a `string + invalid`
+concatenation, which would abort the builder (it runs on every launch and event —
+GR-01). (`GetOSVersion()` requires Roku OS 9.2+; genuinely pre-9.2 firmware is out
 of the supported range and effectively extinct.)
 
 AppsFlyer's privacy guidance treats device identifiers as opt-outable: when the advertising ID is unavailable the SDK should signal limited tracking — which is why this builder emits `limit_ad_tracking` and drops the RIDA when Roku reports it disabled.

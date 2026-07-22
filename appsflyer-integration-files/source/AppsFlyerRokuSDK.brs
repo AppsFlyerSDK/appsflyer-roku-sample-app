@@ -584,7 +584,17 @@ function af_getOsVersionString(deviceInfo as object) as string
     os = deviceInfo.GetOSVersion()
     if os = invalid then return ""
 
+    ' major is required; without it there is no version to report.
     if os.major = invalid or os.major = "" then return ""
 
-    return os.major + "." + os.minor + "." + os.revision
+    ' Omit any missing octet by truncating at the first gap, minor/revision can be absent on older firmware.
+    version = os.major
+    if os.minor <> invalid and os.minor <> "" then
+        version = version + "." + os.minor
+        if os.revision <> invalid and os.revision <> "" then
+            version = version + "." + os.revision
+        end if
+    end if
+
+    return version
 end function
