@@ -4,7 +4,7 @@ name: Common Event Fields Builder
 type: measurement
 platform: Roku (BrightScript)
 status: active
-last_verified: 2026-07-15
+last_verified: 2026-07-20
 depends_on: [F-002, F-004, F-006]
 ---
 
@@ -17,7 +17,19 @@ It assembles `device_ids` (the custom AppsFlyer ID plus RIDA when available),
 Roku privacy signal: if RIDA is disabled it drops the advertising ID and sets
 `limit_ad_tracking = true`. Remove it and each request type would have to
 re-implement device and privacy handling, risking inconsistent or
-non-compliant payloads.
+non-compliant payloads. `device_os_version` is sourced from the supported
+`roDeviceInfo.GetOSVersion()` (IC-002 fix): the SDK emits `major.minor.revision`
+(e.g. `15.3.4`) and falls back to `""` when `GetOSVersion()` returns
+`invalid`/empty. This replaces the deprecated `GetVersion()`, whose masked
+`999.*` placeholder was the original bug — `GetOSVersion()` returns real,
+structured values and does not exhibit it, so no explicit sentinel check is
+kept. `minor`/`revision` were added to `GetOSVersion()` after its 9.2 debut (per
+Roku OS release notes), so on older firmware they can be absent; a missing octet
+is omitted by truncating at the first gap (e.g. `15.3` or `15`) rather than
+zero-filled, and `major` is required. Truncating also avoids a `string + invalid`
+concatenation, which would abort the builder (it runs on every launch and event —
+GR-01). (`GetOSVersion()` requires Roku OS 9.2+; genuinely pre-9.2 firmware is out
+of the supported range and effectively extinct.)
 
 AppsFlyer's privacy guidance treats device identifiers as opt-outable: when the advertising ID is unavailable the SDK should signal limited tracking — which is why this builder emits `limit_ad_tracking` and drops the RIDA when Roku reports it disabled.
 
@@ -34,7 +46,8 @@ Called at the start of every `af_trackAppLaunch` (F-009/F-011) and
 ## Call Chain
 ```
 af_commonFields()                                    [AppsFlyerRokuSDK.brs]
-  → roDeviceInfo.GetRIDA() / GetVersion() / GetModelDetails() / IsRIDADisabled()
+  → roDeviceInfo.GetRIDA() / GetModelDetails() / IsRIDADisabled()
+  → af_getOsVersionString(roDeviceInfo) → device_os_version  (validated GetOSVersion, IC-002)
   → AppsFlyerUtils().generateGUID()  → request_id     [F-004]
   → AppsFlyerUtils().getAFTimestamp() → timestamp      [F-004]
   → device_ids = [custom appsFlyerId (+ rida if enabled)]  [appsFlyerId from F-002/F-003]
@@ -47,8 +60,8 @@ af_commonFields()                                    [AppsFlyerRokuSDK.brs]
 ## Files
 | File | Role |
 |------|------|
-| `appsflyer-integration-files/source/AppsFlyerRokuSDK.brs` | `af_commonFields` |
-| `appsflyer-sample-app/source/source/AppsFlyerRokuSDK.brs` | Identical field builder |
+| `appsflyer-integration-files/source/AppsFlyerRokuSDK.brs` | `af_commonFields`, `af_getOsVersionString` helper |
+| `appsflyer-sample-app/source/source/AppsFlyerRokuSDK.brs` | Identical field builder + helper |
 
 ---
 
@@ -61,7 +74,10 @@ af_commonFields()                                    [AppsFlyerRokuSDK.brs]
 ---
 
 ## Tests
-No automated tests exist in this repository. Verified by inspecting request bodies in debug logs.
+No automated tests exist in this repository; verification is by sideloading the
+channel and inspecting request bodies in the debug console (consistent with every
+other feature). Verified on a physical Roku (OS `15.3.4`): the request body
+reports the real `device_os_version` and never `999.*`.
 
 ---
 
@@ -69,7 +85,12 @@ No automated tests exist in this repository. Verified by inspecting request bodi
 - **`isFirstCall` is effectively always `"false"`** — it reads `common.counter`, but `common` has no `counter` key at that point (the session counter lives on `appsFlyerGlobals`), so the ternary never sees `"1"`.
 - **Large blocks of commented-out fields** — `firstLaunchDate`, `installDate`, `timepassedsincelastlaunch`, locale/country, wifi, and `platformextension` are all disabled; the emitted envelope is intentionally minimal.
 - **`GetRIDA()` called multiple times** — redundant calls; harmless but wasteful.
-- **`device_os_version` can be garbage on some devices** (Jira **DELIVERY-106204**, P2 Bug) — `m.deviceInfo.GetVersion()` returns `999.9999999` on certain Roku devices (reported as a deprecated API), so the stripped `device_os_version` sent to AppsFlyer is wrong for a non-trivial slice of `roku` platform records.
+- **`device_os_version` (DELIVERY-106204 / IC-002) — fixed.** Previously
+  `m.deviceInfo.GetVersion()` returned the masked `999.9999999` sentinel on current
+  firmware. Now sourced via `af_getOsVersionString` → `roDeviceInfo.GetOSVersion()`,
+  which returns real structured values and does not produce that sentinel
+  (`major.minor.revision`, `""` fallback when `invalid`/empty).
+  Residual limitation: historical corrupted records are not backfilled.
 
 ---
 
