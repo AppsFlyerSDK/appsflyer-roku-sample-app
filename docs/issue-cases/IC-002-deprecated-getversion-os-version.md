@@ -26,19 +26,17 @@ A large number of `roku`-platform conversion records in the datalake carry `os_v
 ### Fix Applied
 Fixed on branch `DELIVERY-106204-fix-os-issue`. `af_commonFields` now sources
 `device_os_version` via a new `af_getOsVersionString` helper that reads the
-supported `roDeviceInfo.GetOSVersion()`, composes `major.minor.revision` (build
-excluded), and falls back to `""` when `GetOSVersion()` returns `invalid`/empty.
-Switching off the deprecated `GetVersion()` removes the masked `999.*` placeholder
-at the source — `GetOSVersion()` returns real, structured values — so no explicit
-sentinel check is kept. Crash-safety guards remain: `invalid`/empty `major` yields
-`""`. `minor`/`revision` were added to `GetOSVersion()` after its 9.2 debut (per
-Roku OS release notes), so on older firmware they can be absent; a missing octet
-is omitted by truncating at the first gap (e.g. `15.3` or `15`), never zero-filled
-and never emitted as a gapped string — which also avoids a `string + invalid`
-concatenation that would abort `af_commonFields` (which runs on every launch and
-event — GR-01). (`GetOSVersion()` requires Roku OS 9.2+; pre-9.2 firmware is out
-of the supported range.) Mirrored across both SDK copies; verified on a physical
-Roku (OS `15.3.4`) by inspecting the request body.
+supported `roDeviceInfo.GetOSVersion()`. Switching off the deprecated
+`GetVersion()` removes the masked `999.*` placeholder at the source —
+`GetOSVersion()` returns real, structured values — so no explicit sentinel check
+is kept.emit `major.minor.revision` positionally
+(build octet excluded); a present key keeps its value and a missing key becomes
+`""`, so `.3.2`, `15..4` and `15.3.` are all valid. Coercing a missing/`invalid`
+octet to `""` also avoids a `string + invalid` concatenation that would abort
+`af_commonFields` (which runs on every launch and event — GR-01). (`GetOSVersion()`
+requires Roku OS 9.2+; pre-9.2 firmware is out of the supported range.) Mirrored
+across both SDK copies; verified on a physical Roku (OS `15.3.4`) by inspecting
+the request body.
 
 ### Takeaway
 Treat every value read from a platform/device API as untrusted input: validate it against a sane range and prefer the currently-supported API (`GetOSVersion`) over deprecated ones (`GetVersion`). A "successful" call can still return a garbage sentinel.
