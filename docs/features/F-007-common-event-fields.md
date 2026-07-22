@@ -18,15 +18,13 @@ Roku privacy signal: if RIDA is disabled it drops the advertising ID and sets
 `limit_ad_tracking = true`. Remove it and each request type would have to
 re-implement device and privacy handling, risking inconsistent or
 non-compliant payloads. `device_os_version` is sourced from the supported
-`roDeviceInfo.GetOSVersion()` (IC-002 fix): the SDK emits `major.minor.revision`
-(e.g. `15.3.4`) and falls back to `""` when `GetOSVersion()` returns
-`invalid`/empty. This replaces the deprecated `GetVersion()`, whose masked
-`999.*` placeholder was the original bug — `GetOSVersion()` returns real,
-structured values and does not exhibit it, so no explicit sentinel check is
-kept. `minor`/`revision` were added to `GetOSVersion()` after its 9.2 debut (per
-Roku OS release notes), so on older firmware they can be absent; a missing octet
-is omitted by truncating at the first gap (e.g. `15.3` or `15`) rather than
-zero-filled, and `major` is required. Truncating also avoids a `string + invalid`
+`roDeviceInfo.GetOSVersion()` (IC-002 fix). This replaces the deprecated
+`GetVersion()`, whose masked `999.*` placeholder was the original bug —
+`GetOSVersion()` returns real, structured values and does not exhibit it, so no
+explicit sentinel check is kept. emit
+`major.minor.revision` positionally (build octet excluded); a present key keeps
+its value and a missing key becomes `""`, so `.3.2`, `15..4` and `15.3.` are all
+valid. Coercing a missing/`invalid` octet to `""` also avoids a `string + invalid`
 concatenation, which would abort the builder (it runs on every launch and event —
 GR-01). (`GetOSVersion()` requires Roku OS 9.2+; genuinely pre-9.2 firmware is out
 of the supported range and effectively extinct.)
@@ -89,7 +87,7 @@ reports the real `device_os_version` and never `999.*`.
   `m.deviceInfo.GetVersion()` returned the masked `999.9999999` sentinel on current
   firmware. Now sourced via `af_getOsVersionString` → `roDeviceInfo.GetOSVersion()`,
   which returns real structured values and does not produce that sentinel
-  (`major.minor.revision`, `""` fallback when `invalid`/empty).
+  (`major.minor.revision` positional, each missing octet emitted as `""`).
   Residual limitation: historical corrupted records are not backfilled.
 
 ---
