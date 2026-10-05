@@ -16,7 +16,7 @@ function AppsFlyer() as object
 end function
 
 function AppsFlyerConstants() as object
-    SDK_VERSION = "1.12.1" ' 1.12 = MIN VERSION REQUIRED FOR DEEPLINKING ON ANDROID ENDPOINT - CHECK WITH RTA (if this can be changed)
+    SDK_VERSION = "1.12.2" ' 1.12 = MIN VERSION REQUIRED FOR DEEPLINKING ON ANDROID ENDPOINT - CHECK WITH RTA (if this can be changed)
 
     SESSIONS_ENDPOINT = "https://events.appsflyer.com/v1.0/c2s/session/app/roku/"
     EVENTS_ENDPOINT = "https://events.appsflyer.com/v1.0/c2s/inapp/app/roku/"
