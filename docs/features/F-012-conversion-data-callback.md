@@ -4,7 +4,7 @@ name: Conversion Data / Attribution Callback
 type: attribution
 platform: Roku (BrightScript)
 status: active
-last_verified: 2026-07-15
+last_verified: 2026-10-05
 depends_on: [F-003, F-008, F-009]
 ---
 
@@ -25,10 +25,10 @@ In AppsFlyer's model, conversion data is delivered on first launch and tells the
 ---
 
 ## Trigger
-The `AppsFlyerHTTPTask` observes its own `httpresonseCode`; when a
-session-endpoint request returns `200`, `getConversionData` runs. It either
-returns the cached response or fires a follow-up request to the conversion
-endpoint, then delivers the parsed result.
+The `AppsFlyerHTTPTask` observes its own `httpresonseCode`; when a request
+completes, `getConversionData` runs. A successful (2xx) `first_open` response is
+cached and delivered; a successful session response delivers the cached response
+if one exists, and otherwise stops (no follow-up request — see DELIVERY-131872).
 
 ---
 
@@ -36,12 +36,12 @@ endpoint, then delivers the parsed result.
 ```
 sendHttps() sets httpresonseCode                      [F-008]
   → getConversionData()                               [AppsFlyerHTTPTask.brs]
-      → if endpoint = SESSIONS_ENDPOINT and code 200:
+      → if endpoint = SESSIONS_ENDPOINT and code 2xx:
             cached? → executeCallbacks(cache, true)    [F-003 registry cache]
-            else    → new AppsFlyerHTTPTask to conReqUrl (conversion endpoint)  [F-008]
-      → if endpoint = CONVERSION_ENDPOINT and code 200:
+            else    → log and stop (terminal state; no follow-up task)
+      → if endpoint = CONVERSION_ENDPOINT and code 2xx:
             AppsFlyerRegistry().set("conversionData", response)  [F-003]
-            → executeCallbacks(response, false)
+            → resolveFirstOpen() → executeCallbacks(response, false)
   → executeCallbacks(response, isCache)
       → m.top.callbackData = parseJSON(response)       → observed by host port (F-015)
 ```
@@ -68,12 +68,14 @@ sendHttps() sets httpresonseCode                      [F-008]
 ## Tests
 No automated tests exist in this repository. Verified via the sample app message loop printing `MESSAGE RECEIVED`.
 
+Verified on device (Streaming Stick 4K, OS 15.3.4, 2026-10-05) for DELIVERY-131872: with `AppsFlyerCounter = "1"` and no `conversionData` key, a session 202 produces exactly one `AppsFlyerHTTPTask` (previously an unbounded spawn loop of ~140+/s).
+
 ---
 
 ## Known Limitations
 - **`onConversionDataReceived` / `onAppOpenAttribution` types are declared but unused** — `CallbackTypes` constants exist, yet delivery is a single generic `callbackData` field with no callback-type discrimination.
 - **Cache never invalidated** — once `conversionData` is stored it is returned forever from cache; a re-attribution would not refresh it.
-- **Follow-up request re-reads the port comment** — code notes the port only passes "this way," a fragile observer-wiring workaround.
+- **S2S endpoints return no conversion payload** — on device, `first_open` and `session` both return `202` with an empty body, so the cached `conversionData` is `""` and `callbackData` is set to `invalid`. The former empty-payload follow-up request to the conversion endpoint could never succeed and was removed (DELIVERY-131872).
 - **Only triggers on the session endpoint path** — conversion handling keys off `SESSIONS_ENDPOINT`/`CONVERSION_ENDPOINT` string matches in the response URL.
 
 ---

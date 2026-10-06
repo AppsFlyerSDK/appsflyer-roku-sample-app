@@ -88,11 +88,10 @@ function getConversionData() as void
 
     if Instr(0, endpoint, AppsFlyerConstants().SESSIONS_ENDPOINT) <> 0 and isSuccess then
         if cachedResponse = invalid then
-            m.HttpsTaskContent = createObject("RoSGNode", "AppsFlyerHTTPTask")
-            m.HttpsTaskContent.observeField("httpresonseCode", "getConversionData") ' only passes the port this way (when commented out only on 2nd luanch), why?
-            m.HttpsTaskContent.reqUrl = m.top.conReqUrl
-            m.HttpsTaskContent.json = ""
-            m.HttpsTaskContent.control = "RUN"
+            ' Terminal state: do not spawn a follow-up conversion request. It would carry an
+            ' empty payload, abort with "-1", and re-fire this observer in the parent's scope,
+            ' spawning tasks in an infinite loop (DELIVERY-131872).
+            AppsFlyerLogger().debug("No cached conversion data; skipping conversion data fetch.")
         else
             '            ?"fromCache"
             executeCallbacks(cachedResponse, true)
